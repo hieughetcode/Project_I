@@ -37,12 +37,47 @@ exports.registerUser = async (req, res) => {
             token: generateToken(user._id),
         });
     } catch (err) {
+        console.log("Lỗi đăng ký:", err);
         res.status(500).json({ message: "Lỗi máy chủ. Vui lòng thử lại sau." });
     }
 };
 
 //Đăng nhập
-exports.loginUser = async (req, res) => {};
+exports.loginUser = async (req, res) => {
+    const {email, password} = req.body;
+    if(!email || !password){
+        return res.status(400).json({message: "Vui lòng điền đầy đủ email và mật khẩu"});
+    }
+
+    try {
+        const user = await User.findOne ({email});
+        if (!user || !(await user.comparePassword(password))) {
+            return res.status(400).json({ message: "Thông tin xác thực không hợp lệ"})
+        }
+
+        res.status(200).json({
+            id: user._id,
+            user,
+            token: generateToken(user._id),
+        });
+    } catch(err){
+        console.log("Lỗi đăng nhập:", err);
+        res.status(500).json({ message: "Lỗi máy chủ. Vui lòng thử lại sau." });
+    };
+};
 
 //Lấy thông tin người dùng
-exports.getUserInfo = async (req, res) => {};
+exports.getUserInfo = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select("-password");
+
+        if(!user) {
+            return res.status(404).json({ message: "Không tìm thấy người dùng"});
+        }
+
+        res.status(200).json(user);
+    } catch(err){
+        console.log("Lỗi lấy thông tin người dùng:", err);
+        res.status(500).json({ message: "Lỗi máy chủ. Vui lòng thử lại sau." });
+    }
+};

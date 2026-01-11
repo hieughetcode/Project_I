@@ -15,10 +15,9 @@ const UserSchema = new mongoose.Schema(
 //Hashing mật khẩu trươc khi lưu vào DB
 UserSchema.pre("save", async function (next) {
     if (!this.isModified("password")) {
-        return next();
+        return;
     }
     this.password = await bcrypt.hash(this.password, 10);
-    next();
 });
 
 //So sánh mật khẩu
