@@ -2,6 +2,7 @@ import {React, useEffect, useState} from 'react'
 import { prepareExpenseBarChartData } from '../../utils/helper';
 import CustomBarChart from '../Charts/CustomBarChart'; 
 const Last30DaysExpense = ({ data }) => {
+    
     const [chartData, setChartData] = useState([]);
 
     useEffect(() => {

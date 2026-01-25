@@ -3,11 +3,14 @@ import DashboardLayout from "../../components/layouts/DashboardLayout";
 import IncomeOverview from "../../components/Income/IncomeOverview";
 import axiosInstance from "../../utils/axiosInstance";
 import { API_PATHS } from "../../utils/apiPaths";
-import { IoLogoModelS, IoMdDoneAll } from "react-icons/io";
-import Modal from "../../components/Cards/Modal";
+import Modal from "../../components/Modal";
+import AddIncomeForm from "../../components/Income/AddIncomeForm";
 import { useUserAuth } from "../../hooks/useUserAuth";
 import { LuTrash2 } from "react-icons/lu";
+import { toast } from "react-hot-toast";
+
 const Income = () => {
+
 
     const [incomeData, setIncomeData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -15,10 +18,14 @@ const Income = () => {
         show: false,
         data: null,
     });
+    
     const [openAddIncomeModal, setOpenAddIncomeModal] = useState(false);
 
+    //Get All Income Details
     const fetchIncomeDetails = async () => {
-        if( loading) return;
+        if(loading) return;
+
+        setLoading(true);
 
         try {
             const response = await axiosInstance.get(
@@ -35,10 +42,46 @@ const Income = () => {
         }
     };
 
-    const handleAddIncome = async (income) => {};
+    //Handle Add Income
+    const handleAddIncome = async (income) => {
+        const {source, amount, date, icon} = income;
 
+        //Validation Checks
+        if(!source.trim()) {
+            toast.error("Source is required");
+            return;
+        }
+
+        if(!amount || isNaN(amount) || Number(amount) <= 0) {
+            toast.error("Amount should be a valid number");
+            return;
+        }
+
+        if(!date) {
+            toast.error("Date is required");
+            return;
+        }
+
+        try{
+            await axiosInstance.post(API_PATHS.INCOME.ADD_INCOME, {
+                source,
+                amount,
+                date,
+                icon,
+            });
+
+            setOpenAddIncomeModal(false);
+            toast.success("Income added successfully");
+            fetchIncomeDetails();
+        } catch (error) {
+            console.error("Error adding income. Please try again.", error);
+        }
+    };
+
+    //Delete Income
     const deleteIncome = async (id) => {};
 
+    //Handle download income details
     const handleDownloadIncomeDetails = () => {};
 
     useEffect(() => {
@@ -48,7 +91,7 @@ const Income = () => {
     }, []);
 
     return (
-        <DashboardLayout activeMenu="Dashboard">
+        <DashboardLayout activeMenu="Income">
             <div className = "my-5 mx-auto">
                 <div className="grid grid-cols-1 gap-6">
                     <div className="">
@@ -64,7 +107,7 @@ const Income = () => {
                     onClose = {() => setOpenAddIncomeModal(false)}
                     title="Add Income"
                 >
-                    <div>Add Income Form</div>
+                    <AddIncomeForm onAddIncome={handleAddIncome} />
                 </Modal>
             </div>
         </DashboardLayout>
