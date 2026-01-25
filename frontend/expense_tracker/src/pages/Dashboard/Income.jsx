@@ -8,9 +8,8 @@ import AddIncomeForm from "../../components/Income/AddIncomeForm";
 import { useUserAuth } from "../../hooks/useUserAuth";
 import { LuTrash2 } from "react-icons/lu";
 import { toast } from "react-hot-toast";
-
+import IncomeList from "../../components/Income/IncomeList";
 const Income = () => {
-
 
     const [incomeData, setIncomeData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -18,7 +17,7 @@ const Income = () => {
         show: false,
         data: null,
     });
-    
+
     const [openAddIncomeModal, setOpenAddIncomeModal] = useState(false);
 
     //Get All Income Details
@@ -29,7 +28,7 @@ const Income = () => {
 
         try {
             const response = await axiosInstance.get(
-                `${API_PATHS.INCOME.GET_ALL_INCOME}`
+                `${API_PATHS.INCOME.GET_ALL_INCOME}?t=${new Date().getTime()}`
             );
 
             if(response.data){
@@ -100,6 +99,14 @@ const Income = () => {
                             onAddIncome={() => setOpenAddIncomeModal(true)}
                         />
                     </div>
+
+                    <IncomeList
+                        transactions={incomeData}
+                        onDelete={(id) => {
+                           setOpenDeleteAlert({show: true, data: id});
+                        }}
+                        onDownload={handleDownloadIncomeDetails}
+                    />
                 </div>
 
                 <Modal 
