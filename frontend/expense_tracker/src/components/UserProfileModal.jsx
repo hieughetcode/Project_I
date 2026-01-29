@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
-import Modal from "./Modal"; // Tận dụng Modal có sẵn của bạn
-import ProfilePhotoSelector from "./Inputs/ProfilePhotoSelector"; // Component chọn ảnh
+import Modal from "./Modal";
+import ProfilePhotoSelector from "./Inputs/ProfilePhotoSelector";
 import { UserContext } from "../context/userContext";
 import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS } from "../utils/apiPaths";
@@ -11,17 +11,15 @@ const UserProfileModal = ({ isOpen, onClose }) => {
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Reset ảnh khi mở/đóng modal
   useEffect(() => {
     if (isOpen) {
       setImage(null);
     }
   }, [isOpen]);
 
-  // --- LOGIC XỬ LÝ CHÍNH Ở ĐÂY ---
   const handleSaveProfile = async () => {
     if (!image) {
-      toast.error("Vui lòng chọn ảnh mới để cập nhật");
+      toast.error("Please select a new image to update.");
       return;
     }
 
@@ -29,9 +27,8 @@ const UserProfileModal = ({ isOpen, onClose }) => {
     try {
       let imageUrl = user.profileImageUrl;
 
-      // 1. Upload ảnh lên server (Lấy URL)
       const formData = new FormData();
-      formData.append("image", image); // Key 'image' phải khớp với backend
+      formData.append("image", image);
 
       const uploadRes = await axiosInstance.post(
         API_PATHS.IMAGE.UPLOAD_IMAGE,
@@ -45,21 +42,18 @@ const UserProfileModal = ({ isOpen, onClose }) => {
         imageUrl = uploadRes.data.imageUrl;
       }
 
-      // 2. Cập nhật thông tin User trong Database với URL ảnh mới
-      // Lưu ý: Cần đảm bảo bạn đã thêm API_PATHS.AUTH.UPDATE_USER vào file apiPaths.js như hướng dẫn trước
       const updateRes = await axiosInstance.put(API_PATHS.AUTH.UPDATE_USER, {
         profileImageUrl: imageUrl,
       });
 
-      // 3. Cập nhật lại Context (để giao diện thay đổi ngay lập tức)
       if (updateRes.data) {
         updateUser(updateRes.data);
-        toast.success("Cập nhật ảnh đại diện thành công!");
-        onClose(); // Đóng modal
+        toast.success("Profile photo updated successfully!");
+        onClose();
       }
     } catch (error) {
-      console.error("Lỗi cập nhật:", error);
-      toast.error("Có lỗi xảy ra, vui lòng thử lại.");
+      console.error("Update error:", error);
+      toast.error("Something went wrong, please try again.");
     } finally {
       setLoading(false);
     }
@@ -69,11 +63,10 @@ const UserProfileModal = ({ isOpen, onClose }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Cập nhật ảnh đại diện"
+      title="Update Profile Photo"
     >
       <div className="flex flex-col gap-4">
         <div className="flex justify-center my-4">
-            {/* Component chọn ảnh có sẵn của bạn */}
             <ProfilePhotoSelector image={image} setImage={setImage} />
         </div>
         
@@ -82,14 +75,14 @@ const UserProfileModal = ({ isOpen, onClose }) => {
                 onClick={onClose}
                 className="px-4 py-2 text-sm text-slate-500 hover:text-slate-700 font-medium"
             >
-                Hủy
+                Cancel
             </button>
             <button
                 onClick={handleSaveProfile}
                 disabled={loading}
                 className="px-6 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary/90 disabled:opacity-50"
             >
-                {loading ? "Đang lưu..." : "Lưu thay đổi"}
+                {loading ? "Saving..." : "Save Changes"}
             </button>
         </div>
       </div>

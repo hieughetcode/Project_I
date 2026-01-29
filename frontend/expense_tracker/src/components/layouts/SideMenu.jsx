@@ -3,7 +3,9 @@ import { SIDE_MENU_DATA } from "../../utils/data";
 import { UserContext } from "../../context/userContext";
 import { useNavigate } from "react-router-dom";
 import CharAvatar from "../Cards/CharAvatar";
-import UserProfileModal from "../UserProfileModal"; // Đã import đúng
+import UserProfileModal from "../UserProfileModal";
+// Import icon Logout trực tiếp để dùng cho nút ở cuối
+import { LuLogOut } from "react-icons/lu"; 
 
 const SideMenu = ({ activeMenu }) => {
     const { user, clearUser } = useContext(UserContext);
@@ -18,16 +20,13 @@ const SideMenu = ({ activeMenu }) => {
     };
 
     const handleClick = (item) => {
-        if (item.label === "Logout") {
-            handleLogout();
-            return;
-        }
         navigate(item.path);
     };
 
     return (
-        <div className="w-64 h-[calc(100vh-61px)] bg-white border-r border-gray-200/50 p-5 sticky top-[61px] z-20">
-            {/* 1. THÊM onClick VÀ cursor-pointer VÀO THẺ DIV NÀY */}
+        // 1. THÊM 'flex flex-col' VÀO ĐÂY
+        <div className="w-64 h-[calc(100vh-61px)] bg-white border-r border-gray-200/50 p-5 sticky top-[61px] z-20 flex flex-col">
+            
             <div 
                 className="flex flex-col items-center justify-center gap-3 mt-3 mb-7 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => setOpenProfileModal(true)}
@@ -52,23 +51,40 @@ const SideMenu = ({ activeMenu }) => {
                 </h5>
             </div>
 
-            {SIDE_MENU_DATA.map((item, index) => (
-                <button
-                    key={`menu_${index}`}
-                    className={`w-full flex items-center gap-4 text-[15px] py-3 px-6 rounded-lg mb-3
-                        ${
-                            activeMenu === item.label
-                                ? "text-white bg-primary"
-                                : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                    onClick={() => handleClick(item)}
-                >
-                    <item.icon className="text-xl" />
-                    {item.label}
-                </button>
-            ))}
+            {/* Phần menu chính */}
+            <div className="flex-1"> 
+                {SIDE_MENU_DATA.map((item, index) => {
+                    // 2. NẾU LÀ LOGOUT THÌ BỎ QUA (KHÔNG RENDER Ở ĐÂY)
+                    if (item.label === "Logout") return null;
 
-            {/* 2. HIỂN THỊ MODAL Ở CUỐI CÙNG */}
+                    return (
+                        <button
+                            key={`menu_${index}`}
+                            className={`w-full flex items-center gap-4 text-[15px] py-3 px-6 rounded-lg mb-3
+                                ${
+                                    activeMenu === item.label
+                                        ? "text-white bg-primary"
+                                        : "text-gray-700 hover:bg-gray-100"
+                                }`}
+                            onClick={() => handleClick(item)}
+                        >
+                            <item.icon className="text-xl" />
+                            {item.label}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* 3. RENDER NÚT LOGOUT RIÊNG Ở CUỐI CÙNG */}
+            {/* mt-auto: Tự động đẩy nút này xuống đáy container */}
+            <button
+                className="w-full flex items-center gap-4 text-[15px] py-3 px-6 rounded-lg mb-3 text-red-500 hover:bg-red-50 mt-auto"
+                onClick={handleLogout}
+            >
+                <LuLogOut className="text-xl" />
+                Logout
+            </button>
+
             <UserProfileModal 
                 isOpen={openProfileModal} 
                 onClose={() => setOpenProfileModal(false)} 

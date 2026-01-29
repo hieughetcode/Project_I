@@ -12,6 +12,7 @@ import SignUp from './pages/Auth/SignUp'
 import Home from './pages/Dashboard/Home'
 import Income from './pages/Dashboard/Income'
 import Expense from './pages/Dashboard/Expense'
+import Budget from "./pages/Dashboard/Budget";
 import UserProvider from './context/userContext'
 import { Toaster } from 'react-hot-toast'
 
@@ -27,6 +28,7 @@ const App = () => {
             <Route path="/dashboard" exact element={<Home />} />
             <Route path="/income" exact element={<Income />} />
             <Route path="/expense" exact element={<Expense />} /> 
+            <Route path="/budget" element={<Budget />} />
           </Routes>
         </Router>
       </div>

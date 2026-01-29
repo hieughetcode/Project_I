@@ -7,7 +7,7 @@
     const incomeRoutes = require("./routes/incomeRoutes");
     const expenseRoutes = require("./routes/expenseRoutes");
     const dashboardRoutes = require("./routes/dashboardRoutes");
-
+    const budgetRoutes = require("./routes/budgetRoutes");
     const app = express();
 
     //Middleware để xủ lý CORS
@@ -28,7 +28,7 @@
     app.use("/api/v1/income", incomeRoutes);
     app.use("/api/v1/expense", expenseRoutes);
     app.use("/api/v1/dashboard", dashboardRoutes);
-
+    app.use("/api/v1/budget", budgetRoutes);
     //Phục vụ upload thư mục
     app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 

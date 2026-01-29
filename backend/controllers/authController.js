@@ -13,14 +13,14 @@ exports.registerUser = async (req, res) => {
 
     //Kiểm tra tính xác thực dữ liệu: thông tin không được để trống
     if(!fullName || !email || !password) {
-        return res.status(400).json({ message: "Vui lòng điền đầy đủ thông tin" });
+        return res.status(400).json({ message: "Please fill in all required fields" });
     }
 
     try{
         //Kiểm tra xem người dùng đã tồn tại chưa
         const existingUser = await User.findOne({ email });
         if(existingUser) {
-            return res.status(400).json({ message: "Người dùng đã tồn tại" });
+            return res.status(400).json({ message: "User already exists" });
         }
 
         //Tạo người dùng mới
@@ -72,13 +72,13 @@ exports.getUserInfo = async (req, res) => {
         const user = await User.findById(req.user.id).select("-password");
 
         if(!user) {
-            return res.status(404).json({ message: "Không tìm thấy người dùng"});
+            return res.status(404).json({ message: "User not found"});
         }
 
         res.status(200).json(user);
     } catch(err){
         console.log("Lỗi lấy thông tin người dùng:", err);
-        res.status(500).json({ message: "Lỗi máy chủ. Vui lòng thử lại sau." });
+        res.status(500).json({ message: "Server Error" });
     }
 };
 

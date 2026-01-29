@@ -22,33 +22,29 @@ const SignUp = () => {
 
     const navigate = useNavigate();
 
-    //Hàm xử lý đăng ký
     const handleSignUp = async (e) => {
         e.preventDefault();
 
         let profileImageUrl = "";
 
         if(!fullName) {
-            setError("Vui lòng nhập họ và tên!");
+            setError("Please enter your full name.");
             return;
         }
 
         if(!validateEmail(email)) {
-            setError("Vui lòng nhập địa chỉ email hợp lệ!");
+            setError("Please enter a valid email address.");
             return;
         }
 
         if(!password) {
-            setError("Vui lòng nhập mật khẩu!");
+            setError("Please enter the password.");
             return;
         }
 
         setError("");
 
-        //Gọi tới API đăng ký
         try {
-
-            //Upload avatar if present
             if(profilePic) {
                 const imgUploadRes = await uploadImage(profilePic);
                 profileImageUrl = imgUploadRes.imageUrl || "";
@@ -72,7 +68,7 @@ const SignUp = () => {
             if(error.response && error.response.data.message) {
                 setError(error.response.data.message);
             } else {
-                setError("Điều gì đó lỗi ở đây, vui lòng thử lại.");
+                setError("Something went wrong, please try again.");
             }
         }
     };
@@ -80,9 +76,9 @@ const SignUp = () => {
     return (
         <AuthLayout>
             <div className="lg:w-[100%] h-auto md:h-full mt-10 md:mt-0 flex flex-col justify-center">
-                <h3 className="text-xl font-semibold text-black">Tạo tài khoản</h3>
+                <h3 className="text-xl font-semibold text-black">Create Account</h3>
                 <p className="text-xs text-slate-700 mt-[5px] mb-6">
-                    Hãy tham gia cùng chúng mình bằng cách điền thông tin xuống bên dưới nhé!
+                    Join us today by entering your details below
                 </p>
 
                 <form onSubmit={handleSignUp}>
@@ -92,24 +88,24 @@ const SignUp = () => {
                         <Input
                             value={fullName}
                             onChange={({ target }) => setFullName(target.value)}
-                            label="Họ và tên"
-                            placeholder="Nguyễn Văn A"
+                            label="Full Name"
+                            placeholder="John Doe"
                             type="text"
                         />
 
                         <Input
                             value={email}
                             onChange={({ target }) => setEmail(target.value)}
-                            label="Địa chỉ Email"
-                            placeholder="meomeo04@gmail.com"
+                            label="Email Address"
+                            placeholder="john@example.com"
                             type="text"
                         />
                     <div className="col-span-2">
                         <Input
                             value={password}
                             onChange={({ target }) => setPassword(target.value)}
-                            label="Mật khẩu"
-                            placeholder="Vui lòng nhập ít nhất 8 ký tự"
+                            label="Password"
+                            placeholder="Enter at least 8 characters"
                             type="password"
                         />
                     </div>
@@ -118,13 +114,13 @@ const SignUp = () => {
                     {error && <p className="text-red-500 text-xs pb-2.5">{error}</p>}
 
                     <button type="submit" className="btn-primary">
-                        Đăng ký
+                        Sign Up
                     </button>
 
                     <p className="text-[13px] text-slate-800 mt-3">
-                        Bạn đã có tài khoản?{" "}
+                        Already have an account?{" "}
                         <Link className="font-medium text-primary underline" to="/login">
-                            Đăng nhập
+                            Login
                         </Link>
                     </p>
                 </form>
