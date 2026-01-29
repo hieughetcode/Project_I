@@ -1,10 +1,13 @@
-import React, { useContext } from 'react' // <--- Đã thêm useContext
+import React, { use, useContext } from 'react' // <--- Đã thêm useContext
 import { UserContext } from '../../context/userContext'
 import Navbar from './Navbar';
 import SideMenu from './SideMenu';
+import {useUserAuth} from '../../hooks/useUserAuth'
 
 const DashboardLayout = ({children, activeMenu}) => {
     const {user} = useContext(UserContext);
+
+    useUserAuth();
     
     return (
         <div className="">
