@@ -15,7 +15,7 @@ const SideMenu = ({ activeMenu }) => {
     };
 
     const handleClick = (item) => {
-        if (item.label === "Đăng xuất") {
+        if (item.label === "Logout") {
             handleLogout();
             return;
         }
