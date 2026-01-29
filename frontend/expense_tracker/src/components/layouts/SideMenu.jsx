@@ -1,12 +1,15 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { SIDE_MENU_DATA } from "../../utils/data";
 import { UserContext } from "../../context/userContext";
 import { useNavigate } from "react-router-dom";
 import CharAvatar from "../Cards/CharAvatar";
+import UserProfileModal from "../UserProfileModal"; // Đã import đúng
 
 const SideMenu = ({ activeMenu }) => {
     const { user, clearUser } = useContext(UserContext);
     const navigate = useNavigate();
+
+    const [openProfileModal, setOpenProfileModal] = useState(false);
 
     const handleLogout = () => {
         localStorage.clear();
@@ -24,7 +27,11 @@ const SideMenu = ({ activeMenu }) => {
 
     return (
         <div className="w-64 h-[calc(100vh-61px)] bg-white border-r border-gray-200/50 p-5 sticky top-[61px] z-20">
-            <div className="flex flex-col items-center justify-center gap-3 mt-3 mb-7">
+            {/* 1. THÊM onClick VÀ cursor-pointer VÀO THẺ DIV NÀY */}
+            <div 
+                className="flex flex-col items-center justify-center gap-3 mt-3 mb-7 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => setOpenProfileModal(true)}
+            >
                 {user?.profileImageUrl ? (
                     <img
                         src={user?.profileImageUrl || ""}
@@ -33,7 +40,7 @@ const SideMenu = ({ activeMenu }) => {
                     />
                 ) : (
                     <CharAvatar
-                        fullName = {user?.fullName}
+                        fullName={user?.fullName}
                         width="w-20"
                         height="h-20"
                         style="text-xl"
@@ -60,6 +67,12 @@ const SideMenu = ({ activeMenu }) => {
                     {item.label}
                 </button>
             ))}
+
+            {/* 2. HIỂN THỊ MODAL Ở CUỐI CÙNG */}
+            <UserProfileModal 
+                isOpen={openProfileModal} 
+                onClose={() => setOpenProfileModal(false)} 
+            />
         </div>
     );
 };

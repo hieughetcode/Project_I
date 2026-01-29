@@ -81,3 +81,26 @@ exports.getUserInfo = async (req, res) => {
         res.status(500).json({ message: "Lỗi máy chủ. Vui lòng thử lại sau." });
     }
 };
+
+exports.updateUserInfo = async (req, res) => {
+    try {
+        const { profileImageUrl } = req.body;
+        const userId = req.user.id; // Lấy từ middleware protect
+
+        // Cập nhật thông tin trong Database
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { profileImageUrl }, // Có thể thêm fullName nếu muốn update cả tên
+            { new: true } // Trả về data mới sau khi update
+        ).select("-password");
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: "Không tìm thấy người dùng" });
+        }
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        console.log("Lỗi cập nhật user:", error);
+        res.status(500).json({ message: "Lỗi server!" });
+    }
+};

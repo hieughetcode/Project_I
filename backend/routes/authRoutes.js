@@ -5,6 +5,7 @@ const {
   registerUser,
   loginUser,
   getUserInfo,
+  updateUserInfo,
 } = require("../controllers/authController");
 
 const upload = require("../middleware/uploadMiddleware");
@@ -17,6 +18,8 @@ router.post("/login", loginUser);
 
 router.get("/getUser", protect, getUserInfo);
 
+router.put("/update-user", protect, updateUserInfo);
+
 router.post("/upload-image", upload.single("image"), (req, res) => {
   if(!req.file) {
     return res.status(400).json({ message: "File chưa upload"});
@@ -25,5 +28,7 @@ router.post("/upload-image", upload.single("image"), (req, res) => {
 
   res.status(200).json({ imageUrl });
 });
+
+
 
 module.exports = router;
