@@ -23,14 +23,13 @@ const Expense = () => {
     
     const [openAddExpenseModal, setOpenAddExpenseModal] = useState(false);
     const [editingExpense, setEditingExpense] = useState(null);
-    // State cho bộ lọc
+
     const [filterDate, setFilterDate] = useState({
         startDate: "",
         endDate: "",
         search: ""
     });
 
-    // Get All Expense Details
     const fetchExpenseDetails = async () => {
         if(loading) return;
         setLoading(true);
@@ -51,21 +50,16 @@ const Expense = () => {
                 setExpenseData(response.data);
             }
         } catch (error) {
-            console.error("Lỗi tải dữ liệu", error);
-            toast.error("Không thể tải dữ liệu chi tiêu.");
+            console.error("Error fetching data", error);
+            toast.error("Failed to load expense data.");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleEditExpense = (expense) => {
-        setEditingExpense(expense); // Lưu expense cần sửa vào state
-        setOpenAddExpenseModal(true); // Mở modal
-    };
-
     const handleSearch = () => {
         if (filterDate.startDate && !filterDate.endDate) {
-            toast.error("Vui lòng chọn cả ngày kết thúc");
+            toast.error("Please select end date");
             return;
         }
         fetchExpenseDetails();
@@ -76,7 +70,12 @@ const Expense = () => {
         setTimeout(() => fetchExpenseDetails(), 100); 
     };
 
-    const handleAddExpense = async (expense) => {
+    const handleEditExpense = (expense) => {
+        setEditingExpense(expense);
+        setOpenAddExpenseModal(true);
+    };
+
+    const handleAddOrUpdateExpense = async (expense) => {
         const {category, amount, date, icon} = expense;
 
         if(!category.trim()) {
@@ -95,18 +94,24 @@ const Expense = () => {
         }
 
         try{
-            await axiosInstance.post(API_PATHS.EXPENSE.ADD_EXPENSE, {
-                category,
-                amount,
-                date,
-                icon,
-            });
+            if (editingExpense) {
+                await axiosInstance.put(API_PATHS.EXPENSE.UPDATE_EXPENSE(editingExpense._id), {
+                    category, amount, date, icon
+                });
+                toast.success("Expense updated successfully");
+            } else {
+                await axiosInstance.post(API_PATHS.EXPENSE.ADD_EXPENSE, {
+                    category, amount, date, icon,
+                });
+                toast.success("Expense added successfully");
+            }
 
             setOpenAddExpenseModal(false);
-            toast.success("Expense added successfully");
+            setEditingExpense(null);
             fetchExpenseDetails();
         } catch (error) {
-            console.error("Error adding expense. Please try again.", error);
+            console.error("Error adding/updating expense:", error);
+            toast.error("Something went wrong");
         }
     };
 
@@ -115,13 +120,10 @@ const Expense = () => {
             await axiosInstance.delete(API_PATHS.EXPENSE.DELETE_EXPENSE(id));
 
             setOpenDeleteAlert({show: false, data: null});
-            toast.success("Expense details deleted successfully");
+            toast.success("Expense deleted successfully");
             fetchExpenseDetails();
         } catch (error) {
-            console.error(
-                "Error deleting expense",
-                error.response?.data?.message || error.message
-            );
+            console.error("Error deleting expense", error);
         }
     };
 
@@ -143,8 +145,8 @@ const Expense = () => {
             link.parentNode.removeChild(link);
             window.URL.revokeObjectURL(url);
         } catch (error) {
-            console.error("Error downloading expense details:", error);
-            toast.error("Failed to download expense details. Please try again.");
+            console.error("Error downloading details:", error);
+            toast.error("Failed to download.");
         }
     };
 
@@ -157,7 +159,6 @@ const Expense = () => {
             <div className = "my-5 mx-auto">
                 <div className="grid grid-cols-1 gap-6">
                     
-                    {/* --- [VỊ TRÍ MỚI] THANH TÌM KIẾM & LỌC ĐƯỢC ĐẨY LÊN ĐẦU --- */}
                     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                         <div className="flex flex-col md:flex-row gap-4 items-end">
                             
@@ -214,13 +215,14 @@ const Expense = () => {
                             </div>
                         </div>
                     </div>
-                    {/* --- KẾT THÚC PHẦN TÌM KIẾM --- */}
 
-                    {/* Thẻ Overview nằm dưới bộ lọc */}
                     <div className="">
                         <ExpenseOverview
                             transactions={expenseData}
-                            onAddExpense={() => setOpenAddExpenseModal(true)}
+                            onAddExpense={() => {
+                                setEditingExpense(null);
+                                setOpenAddExpenseModal(true);
+                            }}
                         />
                     </div>
 
@@ -229,16 +231,23 @@ const Expense = () => {
                         onDelete={(id) => {
                             setOpenDeleteAlert({show: true, data: id});
                         }}
+                        onEdit={handleEditExpense}
                         onDownload={handleDownloadExpenseDetails}
                     />
                 </div>
 
                 <Modal 
                     isOpen = {openAddExpenseModal}
-                    onClose = {() => setOpenAddExpenseModal(false)}
-                    title="Add Expense"
+                    onClose = {() => {
+                        setOpenAddExpenseModal(false);
+                        setEditingExpense(null);
+                    }}
+                    title={editingExpense ? "Update Expense" : "Add Expense"}
                 >
-                    <AddExpenseForm onAddExpense={handleAddExpense} />
+                    <AddExpenseForm 
+                        onAddExpense={handleAddOrUpdateExpense} 
+                        expenseInfo={editingExpense}
+                    />
                 </Modal>
 
                 <Modal 

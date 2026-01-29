@@ -5,14 +5,14 @@ import { API_PATHS } from "../../utils/apiPaths";
 import { toast } from "react-hot-toast";
 import Modal from "../../components/Modal";
 import Input from "../../components/Inputs/Input";
-import { LuPlus, LuTrash2, LuTrendingUp } from "react-icons/lu";
+import { LuPlus, LuTrash2, LuTrendingUp, LuPencil } from "react-icons/lu";
 
 const Budget = () => {
     const [budgets, setBudgets] = useState([]);
     const [loading, setLoading] = useState(false);
     const [openAddModal, setOpenAddModal] = useState(false);
+    const [editingBudget, setEditingBudget] = useState(null);
     
-    // State cho form thêm mới
     const [category, setCategory] = useState("");
     const [amount, setAmount] = useState("");
 
@@ -22,29 +22,46 @@ const Budget = () => {
             const response = await axiosInstance.get(API_PATHS.BUDGET.GET_ALL_BUDGETS);
             setBudgets(response.data);
         } catch (error) {
-            toast.error("Lỗi tải dữ liệu ngân sách");
+            toast.error("Failed to load budgets");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAddBudget = async () => {
+    const handleEditBudget = (budget) => {
+        setEditingBudget(budget);
+        setCategory(budget.category);
+        setAmount(budget.amount);
+        setOpenAddModal(true);
+    };
+
+    const handleAddOrUpdateBudget = async () => {
         if (!category || !amount) {
             toast.error("Please fill in all fields");
             return;
         }
         try {
-            await axiosInstance.post(API_PATHS.BUDGET.ADD_BUDGET, {
-                category,
-                amount: Number(amount)
-            });
-            toast.success("Budget set successfully!");
+            if (editingBudget) {
+                await axiosInstance.put(API_PATHS.BUDGET.UPDATE_BUDGET(editingBudget._id), {
+                    category,
+                    amount: Number(amount)
+                });
+                toast.success("Budget updated successfully!");
+            } else {
+                await axiosInstance.post(API_PATHS.BUDGET.ADD_BUDGET, {
+                    category,
+                    amount: Number(amount)
+                });
+                toast.success("Budget set successfully!");
+            }
+            
             setOpenAddModal(false);
+            setEditingBudget(null);
             setCategory("");
             setAmount("");
             fetchBudgets();
         } catch (error) {
-            toast.error("Lỗi khi thêm ngân sách");
+            toast.error("Something went wrong");
         }
     };
 
@@ -55,7 +72,7 @@ const Budget = () => {
                 toast.success("Budget deleted!");
                 fetchBudgets();
             } catch (error) {
-                toast.error("Lỗi khi xóa");
+                toast.error("Failed to delete");
             }
         }
     };
@@ -70,7 +87,12 @@ const Budget = () => {
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-xl font-semibold text-gray-800">Budget Management (This Month)</h2>
                     <button
-                        onClick={() => setOpenAddModal(true)}
+                        onClick={() => {
+                            setEditingBudget(null);
+                            setCategory("");
+                            setAmount("");
+                            setOpenAddModal(true);
+                        }}
                         className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90"
                     >
                         <LuPlus /> Create New
@@ -85,12 +107,16 @@ const Budget = () => {
                                     <h3 className="font-medium text-gray-700 text-lg">{item.category}</h3>
                                     <p className="text-xs text-gray-400">Limit: ${item.amount.toLocaleString()}</p>
                                 </div>
-                                <button onClick={() => handleDeleteBudget(item._id)} className="text-red-400 hover:text-red-600">
-                                    <LuTrash2 />
-                                </button>
+                                <div className="flex gap-2">
+                                    <button onClick={() => handleEditBudget(item)} className="text-slate-400 hover:text-primary">
+                                        <LuPencil />
+                                    </button>
+                                    <button onClick={() => handleDeleteBudget(item._id)} className="text-red-400 hover:text-red-600">
+                                        <LuTrash2 />
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Progress Bar Info */}
                             <div className="mb-2 flex justify-between text-sm">
                                 <span className="text-gray-600 font-medium">Spent: ${item.totalSpent.toLocaleString()}</span>
                                 <span className={`font-bold ${item.percent > 100 ? "text-red-500" : "text-green-600"}`}>
@@ -98,7 +124,6 @@ const Budget = () => {
                                 </span>
                             </div>
 
-                            {/* Progress Bar Visual */}
                             <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2 overflow-hidden">
                                 <div
                                     className={`h-2.5 rounded-full ${item.percent > 100 ? "bg-red-500" : "bg-green-500"}`}
@@ -121,8 +146,14 @@ const Budget = () => {
                     )}
                 </div>
 
-                {/* Modal Thêm Ngân sách */}
-                <Modal isOpen={openAddModal} onClose={() => setOpenAddModal(false)} title="Set Budget">
+                <Modal 
+                    isOpen={openAddModal} 
+                    onClose={() => {
+                        setOpenAddModal(false);
+                        setEditingBudget(null);
+                    }} 
+                    title={editingBudget ? "Update Budget" : "Set Budget"}
+                >
                     <div className="flex flex-col gap-4">
                         <Input
                             value={category}
@@ -139,10 +170,10 @@ const Budget = () => {
                             type="number"
                         />
                         <button
-                            onClick={handleAddBudget}
+                            onClick={handleAddOrUpdateBudget}
                             className="bg-primary text-white py-2 rounded-md hover:bg-primary/90 mt-2"
                         >
-                            Save Budget
+                            {editingBudget ? "Update Budget" : "Save Budget"}
                         </button>
                     </div>
                 </Modal>

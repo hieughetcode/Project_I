@@ -22,8 +22,8 @@ const Income = () => {
     });
 
     const [openAddIncomeModal, setOpenAddIncomeModal] = useState(false);
+    const [editingIncome, setEditingIncome] = useState(null);
 
-    // State cho bộ lọc
     const [filterDate, setFilterDate] = useState({
         startDate: "",
         endDate: "",
@@ -50,8 +50,8 @@ const Income = () => {
                 setIncomeData(response.data);
             }
         } catch (error) {
-            console.error("Something went wrong. Please try again.", error);
-            toast.error("Không thể tải dữ liệu thu nhập.");
+            console.error("Error", error);
+            toast.error("Failed to load income data.");
         } finally {
             setLoading(false);
         }
@@ -59,7 +59,7 @@ const Income = () => {
 
     const handleSearch = () => {
         if (filterDate.startDate && !filterDate.endDate) {
-            toast.error("Vui lòng chọn cả ngày kết thúc");
+            toast.error("Please select end date");
             return;
         }
         fetchIncomeDetails();
@@ -70,7 +70,12 @@ const Income = () => {
         setTimeout(() => fetchIncomeDetails(), 100);
     };
 
-    const handleAddIncome = async (income) => {
+    const handleEditIncome = (income) => {
+        setEditingIncome(income);
+        setOpenAddIncomeModal(true);
+    };
+
+    const handleAddOrUpdateIncome = async (income) => {
         const {source, amount, date, icon} = income;
 
         if(!source.trim()) {
@@ -89,18 +94,24 @@ const Income = () => {
         }
 
         try{
-            await axiosInstance.post(API_PATHS.INCOME.ADD_INCOME, {
-                source,
-                amount,
-                date,
-                icon,
-            });
+            if (editingIncome) {
+                await axiosInstance.put(API_PATHS.INCOME.UPDATE_INCOME(editingIncome._id), {
+                    source, amount, date, icon
+                });
+                toast.success("Income updated successfully");
+            } else {
+                await axiosInstance.post(API_PATHS.INCOME.ADD_INCOME, {
+                    source, amount, date, icon,
+                });
+                toast.success("Income added successfully");
+            }
 
             setOpenAddIncomeModal(false);
-            toast.success("Income added successfully");
+            setEditingIncome(null);
             fetchIncomeDetails();
         } catch (error) {
-            console.error("Error adding income. Please try again.", error);
+            console.error("Error:", error);
+            toast.error("Something went wrong");
         }
     };
 
@@ -109,13 +120,10 @@ const Income = () => {
             await axiosInstance.delete(API_PATHS.INCOME.DELETE_INCOME(id));
 
             setOpenDeleteAlert({show: false, data: null});
-            toast.success("Income details deleted successfully");
+            toast.success("Income deleted successfully");
             fetchIncomeDetails();
         } catch (error) {
-            console.error(
-                "Error deleting income",
-                error.response?.data?.message || error.message
-            );
+            console.error("Error deleting income", error);
         }
     };
 
@@ -137,7 +145,7 @@ const Income = () => {
             window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error("Error downloading income details:", error);
-            toast.error("Failed to download income details. Please try again.");
+            toast.error("Failed to download.");
         }
     };
 
@@ -150,7 +158,6 @@ const Income = () => {
             <div className = "my-5 mx-auto">
                 <div className="grid grid-cols-1 gap-6">
                     
-                    {/* --- [VỊ TRÍ MỚI] THANH TÌM KIẾM & LỌC ĐƯỢC ĐẨY LÊN ĐẦU --- */}
                     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                         <div className="flex flex-col md:flex-row gap-4 items-end">
                             
@@ -159,7 +166,7 @@ const Income = () => {
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder="Search by category..."
+                                        placeholder="Search by source..."
                                         className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary pl-9 text-sm"
                                         value={filterDate.search}
                                         onChange={(e) => setFilterDate({ ...filterDate, search: e.target.value })}
@@ -207,13 +214,14 @@ const Income = () => {
                             </div>
                         </div>
                     </div>
-                    {/* --- KẾT THÚC PHẦN TÌM KIẾM --- */}
 
-                    {/* Thẻ Overview nằm dưới bộ lọc */}
                     <div className="">
                         <IncomeOverview
                             transactions={incomeData}
-                            onAddIncome={() => setOpenAddIncomeModal(true)}
+                            onAddIncome={() => {
+                                setEditingIncome(null);
+                                setOpenAddIncomeModal(true);
+                            }}
                         />
                     </div>
 
@@ -222,16 +230,23 @@ const Income = () => {
                         onDelete={(id) => {
                            setOpenDeleteAlert({show: true, data: id});
                         }}
+                        onEdit={handleEditIncome}
                         onDownload={handleDownloadIncomeDetails}
                     />
                 </div>
 
                 <Modal 
                     isOpen = {openAddIncomeModal}
-                    onClose = {() => setOpenAddIncomeModal(false)}
-                    title="Add Income"
+                    onClose = {() => {
+                        setOpenAddIncomeModal(false);
+                        setEditingIncome(null);
+                    }}
+                    title={editingIncome ? "Update Income" : "Add Income"}
                 >
-                    <AddIncomeForm onAddIncome={handleAddIncome} />
+                    <AddIncomeForm 
+                        onAddIncome={handleAddOrUpdateIncome}
+                        incomeInfo={editingIncome}
+                    />
                 </Modal>
 
                 <Modal 
